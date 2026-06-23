@@ -1,4 +1,4 @@
-
+#mobilepay/Backend/config.py
 import os
 from dotenv import load_dotenv
 
@@ -16,3 +16,8 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    
+    JWT_SECRET_KEY = os.getenv(
+        "JWT_SECRET_KEY"
+    )

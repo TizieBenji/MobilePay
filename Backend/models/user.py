@@ -39,3 +39,21 @@ class User(db.Model):
         db.DateTime,
         server_default=db.func.now()
     )
+    # Add relationships
+    
+kyc = db.relationship(
+    "KYC",
+    backref="user",
+    uselist=False
+)
+
+wallet = db.relationship(
+    "Wallet",
+    backref="user",
+    uselist=False
+)
+
+audit_logs = db.relationship(
+    "AuditLog",
+    backref="user"
+)

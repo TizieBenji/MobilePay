@@ -1,0 +1,1 @@
+ = a-very-long-random-secret-key-at-least-32-chars

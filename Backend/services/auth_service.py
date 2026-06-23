@@ -1,0 +1,107 @@
+from database.db import db
+
+from models.user import User
+
+
+from utils.password_utils import (
+    hash_password,
+    verify_password
+
+)
+
+from flask_jwt_extended import (
+    create_access_token
+)
+
+from services.wallet_service import (
+     create_wallet,
+    create_wallet_internal
+)
+   
+
+def register_user(
+    fullname,
+    email,
+    phone,
+    password
+):
+
+    existing_user = User.query.filter(
+        (User.email == email) |
+        (User.phone == phone)
+    ).first()
+
+    if existing_user:
+
+        return {
+            "success": False,
+            "message": "User already exists"
+        }, 400
+
+    user = User(
+        fullname=fullname,
+        email=email,
+        phone=phone,
+        password_hash=hash_password(password)
+    )
+
+    db.session.add(user)
+
+    # Flush gets the user ID without committing yet
+    db.session.flush()
+
+    # Create wallet automatically
+    wallet = create_wallet_internal(user.id)
+
+    if not wallet:
+        db.session.rollback()
+
+        return {
+            "success": False,
+            "message": "Failed to create wallet"
+        }, 500
+
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "User created",
+        "user_id": user.id
+    }, 201
+
+
+
+def login_user(email, password):
+    
+    print("LOGIN ATTEMPT:", email)
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }, 401
+
+    # use your helper function
+    if not verify_password(password, user.password_hash):
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }, 401
+    
+    token = create_access_token(
+        identity = str(user.id)
+    )    
+
+    return {
+        "success": True,
+        "message": "Login successful",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "fullname": user.fullname,
+            "email": user.email,
+            "phone": user.phone
+        }
+    }, 200    
