@@ -40,23 +40,6 @@ os.makedirs("uploads/kyc", exist_ok=True)
 db.init_app(app)
 jwt.init_app(app)
 
-
-# Rate limiting
-# Limits are defined per-route in routes/pawapay_routes.py.
-# If flask-limiter is not installed, routes fall back to no limiting
-# (the try/except in pawapay_routes.py handles this gracefully).
-try:
-    from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
-    limiter = Limiter(
-        app=app, key_func=get_remote_address,
-        default_limits=[],          # no global default; limits set per-route
-        storage_uri="memory://",    # switch to "redis://..." in production
-    )
-except ImportError:
-    pass  # Rate limiting disabled — install flask-limiter to enable
-
-
 @app.route("/")
 def home():
     return {"message": "MobilePay Backend Running"}
