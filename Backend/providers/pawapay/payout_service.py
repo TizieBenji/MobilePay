@@ -24,8 +24,8 @@ def initiate_payout(payout_id: str, phone: str, amount, statement_description: s
     if not correspondent:
         return _error(payout_id, f"Could not determine MTN/Orange network for {phone}.")
 
-    amount_valid, amount_err = validate_amount_for_cameroon(amount)
-    
+    amount_valid, amount_err = validate_amount_for_cameroon(amount, correspondent)
+
     if not amount_valid:
         return _error(payout_id, amount_err)
 

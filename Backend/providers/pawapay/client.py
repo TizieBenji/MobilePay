@@ -90,3 +90,22 @@ def post(path: str, payload: dict) -> dict:
     via stored idempotency key).
     """
     return _safe_request("POST", path, json=payload)
+
+
+def predict_correspondent(msisdn: str) -> str | None:
+    """
+    Ask PawaPay which correspondent (mobile money operator) owns an MSISDN.
+
+    This is the authoritative routing source: it accounts for full-number
+    operator allocation and mobile number portability, which a static phone
+    prefix table cannot. Lookups are idempotent, so we use the retrying GET-
+    style behaviour by calling the predict endpoint and treating a 4xx as a
+    definitive "cannot resolve".
+
+    Returns the correspondent code (e.g. "MTN_MOMO_CMR") or None.
+    """
+    result = _safe_request("POST", "/v1/predict-correspondent", json={"msisdn": msisdn})
+    if not result["ok"]:
+        logger.warning("predict-correspondent could not resolve MSISDN (status %s)", result["status_code"])
+        return None
+    return result["data"].get("correspondent") or None

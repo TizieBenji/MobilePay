@@ -15,10 +15,20 @@ class PawaPayConfig:
     COUNTRY = "CMR"
     CURRENCY = "XAF"
 
-    CORRESPONDENTS = {
-        "MTN": "MTN_MOMO_CMR",
-        "ORANGE": "ORANGE_CMR",
+    # Per-correspondent transaction limits (XAF), sourced from PawaPay's active
+    # configuration for Cameroon (GET /v1/active-conf). PawaPay rejects any
+    # amount outside these bounds, so we validate against them before calling
+    # the API. Caps differ by operator (Orange is lower than MTN), so the cap
+    # must be looked up by correspondent — not a single global value.
+    CORRESPONDENT_LIMITS = {
+        "MTN_MOMO_CMR": {"min": 1, "max": 1_000_000},
+        "ORANGE_CMR": {"min": 1, "max": 500_000},
     }
+
+    # Highest cap across all CMR operators — a coarse outer bound used before
+    # the correspondent is known. The precise per-operator cap is enforced
+    # afterwards, once detect_correspondent has resolved the network.
+    MAX_TRANSACTION_LIMIT = max(limit["max"] for limit in CORRESPONDENT_LIMITS.values())
 
     REQUEST_TIMEOUT_SECONDS = 30
     POLL_MAX_ATTEMPTS = 10

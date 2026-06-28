@@ -16,11 +16,18 @@ from providers.pawapay.payout_service import (
     check_payout_status,
     poll_payout_until_final,
 )
+from providers.pawapay.config import PawaPayConfig
 
 logger = logging.getLogger(__name__)
 
+# Business floor for a PawaPay transaction. Stricter than PawaPay's own minimum
+# (1 XAF) — this is a product rule, not a provider constraint.
 XAF_MINIMUM_AMOUNT = 100
-XAF_MAXIMUM_AMOUNT = 10_000_000
+
+# Coarse upper bound for early rejection at the route layer, before the operator
+# is known. Equals the highest cap across CMR operators; the precise per-operator
+# cap is enforced in the provider layer after correspondent detection.
+XAF_MAXIMUM_AMOUNT = PawaPayConfig.MAX_TRANSACTION_LIMIT
 
 
 

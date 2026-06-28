@@ -1,27 +1,6 @@
 import re, math
+from providers.pawapay import client
 from providers.pawapay.config import PawaPayConfig
-
-_PREFIX_RULES = [
-    ("23765",  "MTN"),
-    ("237670", "MTN"), ("237671", "MTN"), ("237672", "MTN"), ("237673", "MTN"),
-    ("237674", "MTN"), ("237675", "MTN"), ("237676", "MTN"), ("237677", "MTN"),
-    ("237678", "MTN"), ("237679", "MTN"),
-    ("237680", "MTN"), ("237681", "MTN"), ("237682", "MTN"), ("237683", "MTN"),
-    ("237684", "MTN"), ("237685", "MTN"), ("237686", "MTN"), ("237687", "MTN"),
-    ("237688", "MTN"), ("237689", "MTN"),
-    ("237655", "ORANGE"), ("237656", "ORANGE"), ("237657", "ORANGE"),
-    ("237658", "ORANGE"), ("237659", "ORANGE"),
-    ("237690", "ORANGE"), ("237691", "ORANGE"), ("237692", "ORANGE"),
-    ("237693", "ORANGE"), ("237694", "ORANGE"), ("237695", "ORANGE"),
-    ("237696", "ORANGE"), ("237697", "ORANGE"), ("237698", "ORANGE"),
-    ("237699", "ORANGE"),
-]
-
-# Sort once at module load — longest prefix wins (Orange 237655 beats MTN 23765)
-_SORTED_PREFIX_RULES = sorted(_PREFIX_RULES, key=lambda r: len(r[0]), reverse=True)
-
-# Upper bound: PawaPay/XAF practical max per transaction (10 million XAF)
-XAF_MAX_AMOUNT = 10_000_000
 
 
 def normalize_msisdn(raw_phone: str) -> str | None:
@@ -29,6 +8,10 @@ def normalize_msisdn(raw_phone: str) -> str | None:
     Normalize a phone number to the 237XXXXXXXXX format PawaPay expects.
     Accepts: +237xxxxxxxxx / 237xxxxxxxxx / xxxxxxxxx (9 digits)
     Returns None if invalid.
+
+    Cameroon mobile numbers are 9 national digits beginning with 6
+    (e.g. 6XXXXXXXX); landlines and other ranges cannot hold a mobile-money
+    account, so we reject anything whose national part does not start with 6.
     """
     digits = re.sub(r"\D", "", raw_phone)
 
@@ -42,29 +25,40 @@ def normalize_msisdn(raw_phone: str) -> str | None:
     if len(msisdn) != 12:
         return None
 
+    # National part (after the 237 country code) must be a mobile number.
+    if msisdn[3] != "6":
+        return None
+
     return msisdn
 
 
 def detect_correspondent(raw_phone: str) -> str | None:
     """
-    Return 'MTN_MOMO_CMR' or 'ORANGE_CMR' for a Cameroon number, or None.
-    Uses pre-sorted prefix list — no re-sort on every call.
+    Return the PawaPay correspondent ('MTN_MOMO_CMR' / 'ORANGE_CMR') for a
+    Cameroon number, or None if it is invalid or cannot be resolved.
+
+    Routing is delegated to PawaPay's predict-correspondent service rather than
+    a local prefix table. The previous static table was wrong for ~30% of the
+    Cameroon mobile range (whole MTN blocks rejected, others routed to the wrong
+    operator) and could never track number portability, where the operator is
+    determined by the full MSISDN — not a fixed prefix. PawaPay is the source of
+    truth, so we ask it directly and avoid misrouting money.
     """
     msisdn = normalize_msisdn(raw_phone)
     if not msisdn:
         return None
 
-    for prefix, network in _SORTED_PREFIX_RULES:
-        if msisdn.startswith(prefix):
-            return PawaPayConfig.CORRESPONDENTS.get(network)
-
-    return None
+    return client.predict_correspondent(msisdn)
 
 
-def validate_amount_for_cameroon(amount) -> tuple[bool, str]:
+def validate_amount_for_cameroon(amount, correspondent: str | None = None) -> tuple[bool, str]:
     """
-    XAF must be a positive whole number within the allowed range.
+    XAF must be a positive whole number within the operator's allowed range.
     Returns (is_valid, error_message).
+
+    The cap is operator-specific (PawaPay rejects out-of-range amounts), so when
+    the correspondent is known we enforce that operator's limit; otherwise we
+    fall back to the highest cap across CMR operators as a coarse bound.
     """
     try:
         numeric = float(amount)
@@ -83,10 +77,14 @@ def validate_amount_for_cameroon(amount) -> tuple[bool, str]:
             f"Use a whole number (e.g. {int(numeric)})."
         )
 
-    if int(numeric) > XAF_MAX_AMOUNT:
+    limits = PawaPayConfig.CORRESPONDENT_LIMITS.get(correspondent)
+    max_allowed = limits["max"] if limits else PawaPayConfig.MAX_TRANSACTION_LIMIT
+
+    if int(numeric) > max_allowed:
+        operator = correspondent or "this operator"
         return False, (
-            f"Amount exceeds maximum allowed per transaction "
-            f"({XAF_MAX_AMOUNT:,} XAF)."
+            f"Amount exceeds the maximum allowed per transaction for "
+            f"{operator} ({max_allowed:,} XAF)."
         )
 
     return True, ""

@@ -27,7 +27,7 @@ def initiate_deposit(deposit_id: str, phone: str, amount, statement_description:
             "Cameroon numbers must start with 237 + 9 digits."
         )
 
-    amount_valid, amount_err = validate_amount_for_cameroon(amount)
+    amount_valid, amount_err = validate_amount_for_cameroon(amount, correspondent)
     if not amount_valid:
         return _error(deposit_id, amount_err)
 
