@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 
 from config import Config
 from database.db import db
@@ -20,6 +21,7 @@ from routes.pawapay_routes import pawapay_bp
 
 # Initialize extensions
 jwt = JWTManager()
+migrate = Migrate()
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error):
@@ -36,9 +38,12 @@ app.config.from_object(Config)
 # Ensure upload directory exists
 os.makedirs("uploads/kyc", exist_ok=True)
 
-# Initialize DB + JWT
+# Initialize DB + JWT + migrations
 db.init_app(app)
 jwt.init_app(app)
+# render_as_batch keeps ALTERs working on SQLite (dev); compare_type lets
+# autogenerate notice column type changes (e.g. Float -> Numeric).
+migrate.init_app(app, db, render_as_batch=True, compare_type=True)
 
 @app.route("/")
 def home():
@@ -56,9 +61,9 @@ app.register_blueprint(transfer_bp, url_prefix="/api/transfer")
 app.register_blueprint(mtn_bp, url_prefix="/api/mtn")
 app.register_blueprint(pawapay_bp, url_prefix="/api/pawapay")
 
-with app.app_context():
-    db.create_all()
 
+# Schema is now managed by Flask-Migrate / Alembic.
+# Create or upgrade the database with:  flask db upgrade
 
 
 if __name__ == "__main__":
