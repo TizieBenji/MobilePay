@@ -72,8 +72,6 @@ def register_user(
 
 
 def login_user(email, password):
-    
-    print("LOGIN ATTEMPT:", email)
 
     user = User.query.filter_by(email=email).first()
 

@@ -4,17 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import os
-from dotenv import load_dotenv
-
-loaded = load_dotenv()
-
-print("DOTENV LOADED:", loaded)
-print("CURRENT WORKDIR:", os.getcwd())
-print(
-    "MTN_COLLECTION_PRIMARY_KEY:",
-    os.getenv("MTN_COLLECTION_PRIMARY_KEY")
-)
 
 class MTNConfig:
 

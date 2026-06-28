@@ -18,11 +18,6 @@ def create_api_user(
     product_type,
     callback_host=None
 ):
-    print(
-    "SUBSCRIPTION KEY:",
-    MTNConfig.COLLECTION_PRIMARY_KEY
-    )
-
     api_user = str(
         uuid.uuid4()
     )

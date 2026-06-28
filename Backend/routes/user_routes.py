@@ -23,12 +23,6 @@ def me():
     user = User.query.get(
         int(user_id)
     )
-    
-    print(
-    "JWT USER ID:",
-    user_id,
-    type(user_id)
-)
 
     return {
         "id": user.id,
