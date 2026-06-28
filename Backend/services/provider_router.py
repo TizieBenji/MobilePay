@@ -3,55 +3,15 @@ from services.transfer_service import transfer
 def route_transfer(sender_id, receiver_id, amount, channel):
     
     channel = channel.upper() if channel else "INTERNAL"
-    
-    
 
-    if channel == "MTN":
-
+    if channel in ("MTN", "ORANGE", "MTN_TO_ORANGE", "ORANGE_TO_MTN"):
         return transfer(
             sender_id,
             receiver_id,
             amount,
-            channel="MTN"
+            channel=channel
         )
 
-        if channel == "ORANGE":
-
-            return transfer(
-                sender_id,
-                receiver_id,
-                amount,
-                channel="ORANGE"
-            )
-            
-            
-            
-            
-        if channel == "MTN_TO_ORANGE":
-            
-
-            # Step 1: debit MTN side
-            result = transfer(
-                sender_id,
-                receiver_id,
-                amount,
-                channel="MTN_TO_ORANGE"
-            )
-
-            return result    
-        
-        if channel == "ORANGE_TO_MTN":
-            
-
-            result = transfer(
-                sender_id,
-                receiver_id,
-                amount,
-                channel="ORANGE_TO_MTN"
-            )
-
-            return result
-        
     return transfer(
         sender_id,
         receiver_id,
