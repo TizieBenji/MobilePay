@@ -150,55 +150,9 @@ def debit_wallet_from_transaction(reference_id):
 
     return True
 
-# -----------------------------
-# DEPOSIT (MANUAL TEST ONLY)
-# -----------------------------
-def deposit(user_id, amount):
-
-    if amount <= 0:
-        return {"success": False, "message": "Invalid amount"}, 400
-
-    wallet = Wallet.query.filter_by(user_id=user_id).first()
-
-    if not wallet:
-        return {"success": False, "message": "Wallet not found"}, 404
-
-    wallet.balance = to_decimal(wallet.balance) + to_decimal(amount)
-
-    db.session.commit()
-
-    return {
-        "success": True,
-        "message": "Deposit successful",
-        "new_balance": to_amount(wallet.balance)
-    }, 200
-
-
-# -----------------------------
-# WITHDRAW (BASIC)
-# -----------------------------
-def withdraw(user_id, amount):
-
-    if amount <= 0:
-        return {"success": False, "message": "Invalid amount"}, 400
-
-    wallet = Wallet.query.filter_by(user_id=user_id).first()
-
-    if not wallet:
-        return {"success": False, "message": "Wallet not found"}, 404
-
-    if to_decimal(wallet.balance) < to_decimal(amount):
-        return {"success": False, "message": "Insufficient balance"}, 400
-
-    wallet.balance = to_decimal(wallet.balance) - to_decimal(amount)
-
-    db.session.commit()
-
-    return {
-        "success": True,
-        "message": "Withdrawal successful",
-        "new_balance": to_amount(wallet.balance)
-    }, 200
+# Deposit / withdraw live in transaction_service (ledger-backed, KYC-gated).
+# The previous un-ledgered duplicates here were removed to keep one source
+# of truth; wallet routes now delegate to transaction_service.
 
 
 # -----------------------------

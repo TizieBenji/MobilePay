@@ -6,6 +6,7 @@ from models.transaction import Transaction
 from models.wallet import Wallet
 from models.kyc import KYC
 from utils.money import to_decimal, to_amount
+from services.transfer_service import transfer as _safe_transfer
 
 
 # -----------------------------
@@ -132,44 +133,11 @@ def withdraw(user_id, amount):
 # -----------------------------
 # TRANSFER (INTERNAL P2P)
 # -----------------------------
+# Delegates to the single concurrency-safe implementation in transfer_service
+# (row-locked, deadlock-safe ordering, KYC-gated, self-transfer guarded) so
+# there is one source of truth for moving money between wallets.
 def transfer(sender_id, receiver_id, amount):
-
-    if amount <= 0:
-        return {"success": False, "message": "Invalid amount"}, 400
-
-    if not is_kyc_approved(sender_id):
-        return {"success": False, "message": "Sender KYC not approved"}, 403
-
-    sender_wallet = Wallet.query.filter_by(user_id=sender_id).first()
-    receiver_wallet = Wallet.query.filter_by(user_id=receiver_id).first()
-
-    if not sender_wallet or not receiver_wallet:
-        return {"success": False, "message": "Wallet not found"}, 404
-
-    if to_decimal(sender_wallet.balance) < to_decimal(amount):
-        return {"success": False, "message": "Insufficient balance"}, 400
-
-    # atomic transfer
-    sender_wallet.balance = to_decimal(sender_wallet.balance) - to_decimal(amount)
-    receiver_wallet.balance = to_decimal(receiver_wallet.balance) + to_decimal(amount)
-
-    tx = create_transaction(
-        user_id=sender_id,
-        amount=amount,
-        type="TRANSFER",
-        sender_phone=None,
-        receiver_phone=None,
-        provider="INTERNAL"
-    )
-
-    db.session.commit()
-
-    return {
-        "success": True,
-        "message": "Transfer successful",
-        "reference": tx.reference_id,
-        "sender_balance": to_amount(sender_wallet.balance)
-    }, 200
+    return _safe_transfer(sender_id, receiver_id, amount)
 
 
 # -----------------------------

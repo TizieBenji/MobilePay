@@ -5,9 +5,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.wallet_service import (
     create_wallet,
     get_wallet,
-    deposit,
-    withdraw,
     create_wallet_internal
+)
+# Deposit/withdraw are ledger-backed and KYC-gated in transaction_service,
+# which is the single source of truth for wallet money movement.
+from services.transaction_service import (
+    deposit,
+    withdraw
 )
 
 wallet_bp = Blueprint("wallet", __name__)
