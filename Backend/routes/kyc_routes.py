@@ -8,6 +8,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 
 from services.kyc_service import create_kyc
+from models.kyc import KYC
 
 
 kyc_bp = Blueprint("kyc", __name__)
@@ -29,6 +30,7 @@ def submit_kyc():
 
     national_id_number = request.form.get("national_id_number")
     document_type = request.form.get("document_type")
+    residential_address = request.form.get("residential_address")
 
     if not national_id_number or not document_type:
         return {
@@ -73,5 +75,19 @@ def submit_kyc():
         document_type=document_type,
         front_path=front_path,
         back_path=back_path,
-        selfie_path=selfie_path
+        selfie_path=selfie_path,
+        residential_address=residential_address
     )
+
+
+@kyc_bp.route("/status", methods=["GET"])
+@jwt_required()
+def kyc_status():
+    user_id = int(get_jwt_identity())
+
+    kyc = KYC.query.filter_by(user_id=user_id).first()
+
+    if not kyc:
+        return {"success": True, "status": "NOT_SUBMITTED"}, 200
+
+    return {"success": True, "status": kyc.status}, 200

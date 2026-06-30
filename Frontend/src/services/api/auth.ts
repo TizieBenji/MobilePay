@@ -79,7 +79,10 @@ export const authApi = {
 
 function normalizeAuthResponse(data: BackendAuthResponse, fallback: Partial<User> & { emailOrPhone?: string }): AuthResponse {
   const body = data.data || data;
-  const token = body.access_token || body.token || 'dev-token-change-after-backend-login';
+  const token = body.access_token || body.token;
+  if (!token) {
+    throw new Error('Server response did not include an auth token.');
+  }
   const refreshToken = body.refresh_token || null;
   const backendUser = body.user || {};
 

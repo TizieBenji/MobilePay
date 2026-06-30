@@ -17,6 +17,8 @@ class KYC(db.Model):
 
     document_type = db.Column(db.String(20), nullable=False)
 
+    residential_address = db.Column(db.Text, nullable=True)
+
     document_front = db.Column(db.Text, nullable=False)
     document_back = db.Column(db.Text, nullable=True)
     selfie_image = db.Column(db.Text, nullable=True)

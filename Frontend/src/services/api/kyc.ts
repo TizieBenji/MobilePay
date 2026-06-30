@@ -1,17 +1,35 @@
+import { Platform } from 'react-native';
 import { apiClient, getApiError } from './client';
-import { KycUploadPayload } from '@/types/kyc';
+import { ImageAsset, KycUploadPayload } from '@/types/kyc';
+
+// On native, RN's fetch/FormData accepts the {uri, name, type} shape directly.
+// On web, asset.uri is a blob: URL that must be fetched into a real Blob first.
+async function toFormValue(asset: ImageAsset): Promise<any> {
+  if (Platform.OS !== 'web') {
+    return asset as any;
+  }
+  const blob = await (await fetch(asset.uri)).blob();
+  return new File([blob], asset.name, { type: asset.type });
+}
 
 export const kycApi = {
   async uploadKyc(payload: KycUploadPayload): Promise<void> {
     try {
-      const formData = new FormData();
-      formData.append('national_id', payload.nationalId);
-      formData.append('residential_address', payload.residentialAddress);
-      formData.append('id_front', payload.idFront as any);
-      formData.append('id_back', payload.idBack as any);
-      formData.append('selfie', payload.selfie as any);
+      const [front, back, selfie] = await Promise.all([
+        toFormValue(payload.idFront),
+        toFormValue(payload.idBack),
+        toFormValue(payload.selfie)
+      ]);
 
-      await apiClient.post('/kyc/upload', formData, {
+      const formData = new FormData();
+      formData.append('national_id_number', payload.nationalId);
+      formData.append('residential_address', payload.residentialAddress);
+      formData.append('document_type', 'NATIONAL_ID');
+      formData.append('front', front);
+      formData.append('back', back);
+      formData.append('selfie', selfie);
+
+      await apiClient.post('/kyc/submit', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
     } catch (error) {

@@ -64,10 +64,22 @@ def register_user(
 
     db.session.commit()
 
+    identity = str(user.id)
+    token = create_access_token(identity=identity)
+    refresh_token = create_refresh_token(identity=identity)
+
     return {
         "success": True,
         "message": "User created",
-        "user_id": user.id
+        "user_id": user.id,
+        "token": token,
+        "refresh_token": refresh_token,
+        "user": {
+            "id": user.id,
+            "fullname": user.fullname,
+            "email": user.email,
+            "phone": user.phone
+        }
     }, 201
 
 

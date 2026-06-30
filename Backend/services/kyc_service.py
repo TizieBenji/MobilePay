@@ -8,7 +8,8 @@ def create_kyc(
     document_type,
     front_path,
     back_path,
-    selfie_path
+    selfie_path,
+    residential_address=None
 ):
 
     # Validate required fields
@@ -41,6 +42,7 @@ def create_kyc(
         existing.document_front = front_path
         existing.document_back = back_path
         existing.selfie_image = selfie_path
+        existing.residential_address = residential_address
         existing.status = "PENDING"
         existing.rejection_reason = None
 
@@ -60,6 +62,7 @@ def create_kyc(
         document_front=front_path,
         document_back=back_path,
         selfie_image=selfie_path,
+        residential_address=residential_address,
         status="PENDING"
     )
 
