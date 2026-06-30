@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 
@@ -35,6 +36,14 @@ def missing_token_callback(error):
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# CORS: the frontend (Expo web in a browser, or Expo Go on a phone) calls this
+# API from a different origin. Auth is via the Authorization header (not cookies),
+# so a permissive dev policy on /api/* is safe here. Tighten ALLOWED_ORIGINS for
+# production. Set CORS_ORIGINS in .env (comma-separated) to override.
+_cors_origins = os.getenv("CORS_ORIGINS", "*")
+_origins = "*" if _cors_origins.strip() == "*" else [o.strip() for o in _cors_origins.split(",") if o.strip()]
+CORS(app, resources={r"/api/*": {"origins": _origins}})
 
 # Ensure upload directory exists
 os.makedirs("uploads/kyc", exist_ok=True)

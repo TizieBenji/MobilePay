@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "MobilePay",
+    "slug": "mobilepay",
+    "scheme": "mobilepay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0B1020",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mobilepay.frontend"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1020",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.mobilepay.frontend"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MobilePay needs access to your photos so you can upload your KYC documents.",
+          "cameraPermission": "MobilePay needs camera access so you can take your KYC selfie."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "http://localhost:5000/api"
+    }
+  }
+}
