@@ -85,3 +85,70 @@ CORS is open for `/api/*` in dev (see `Backend/app.py`); restrict
 3. On **Wallet**, tap **Top up**, enter an MTN/Orange number + amount → wallet is
    credited once the sandbox collection completes.
 4. Tap **Withdraw** to pay out from the wallet balance.
+
+---
+
+## Testing
+
+The integration was exercised against the **live backend + PawaPay sandbox**,
+hitting the exact endpoints/payloads the app's screens send. The wallet ledger
+rule held throughout: **balance only moves on `COMPLETED`** — never on `FAILED`
+or while still pending.
+
+### Happy path
+`register → login → collect (wallet credited) → disburse (wallet debited) → history`
+— verified, with balances and transaction history updating correctly.
+
+### Input validation (all rejected, HTTP 400)
+| Case | Result |
+|------|--------|
+| Amount below min (50) | `Minimum amount is 100 XAF` |
+| Amount above coarse max (2,000,000) | `Maximum amount is 1,000,000 XAF` |
+| Decimal amount (100.5) | `XAF does not support decimal amounts` |
+| Invalid / non-mobile phone | `Invalid phone number` |
+| Missing amount / phone / empty body | field-specific error |
+| **Orange 600k** (over the 500k Orange cap) | `exceeds the maximum … for ORANGE_CMR (500,000 XAF)` |
+| Disburse over balance | `Insufficient available balance …` |
+| Status with malformed UUID / unknown UUID | 400 / 404 |
+
+### Auth & authorization
+| Case | Result |
+|------|--------|
+| Request with no token | 401 |
+| Login wrong password | 401 |
+| User B reads User A's transaction | 404 (masks existence) |
+
+### Failure paths (PawaPay sandbox test MSISDNs)
+Driven through `collect`/`disburse` with `polling: true`; each returned
+`pawa_status: FAILED` with the right `failure_code`, and the **wallet was not
+moved**:
+
+| MSISDN | Operation | failureCode |
+|--------|-----------|-------------|
+| 653456789 | deposit | *(COMPLETED — wallet credited)* |
+| 653456019 | deposit | PAYER_LIMIT_REACHED |
+| 653456029 | deposit | PAYER_NOT_FOUND |
+| 693456049 | deposit (Orange) | INSUFFICIENT_BALANCE |
+| 653456129 | deposit | NO_CALLBACK → returns "still processing" (202) |
+| 653456089 | payout | RECIPIENT_NOT_FOUND |
+| 693456099 | payout (Orange) | RECIPIENT_NOT_ALLOWED_TO_RECEIVE |
+
+### Sandbox test numbers (reference)
+PawaPay routes the outcome by MSISDN. `…789` always **COMPLETES**; the others
+fail with the listed code. `…129` never calls back (stuck `SUBMITTED`) — locally
+the polling path times out and the deposit stays pending.
+
+**MTN (`MTN_MOMO_CMR`, `2376534560xx`)**
+- Deposit: `…19` PAYER_LIMIT_REACHED · `…29` PAYER_NOT_FOUND · `…39` PAYMENT_NOT_APPROVED · `…69` OTHER_ERROR · `…129` NO_CALLBACK · `…789` COMPLETED
+- Payout: `…89` RECIPIENT_NOT_FOUND · `…119` OTHER_ERROR · `…129` NO_CALLBACK · `…789` COMPLETED
+
+**Orange (`ORANGE_CMR`, `2376934560xx`)**
+- Deposit: `…19` PAYER_LIMIT_REACHED · `…29` PAYER_NOT_FOUND · `…39` PAYMENT_NOT_APPROVED · `…49` INSUFFICIENT_BALANCE · `…69` OTHER_ERROR · `…129` NO_CALLBACK · `…789` COMPLETED
+- Payout: `…99` RECIPIENT_NOT_ALLOWED_TO_RECEIVE · `…119` OTHER_ERROR · `…129` NO_CALLBACK · `…789` COMPLETED
+
+### Not covered
+- The rendered React Native UI itself (clicking through screens) — the web build
+  bundles cleanly and the API layer is fully proven, but UI interaction wasn't
+  automated.
+- The production **webhook** flow (HMAC-verified async callbacks); local testing
+  used the polling path instead.
