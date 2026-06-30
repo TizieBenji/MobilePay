@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '@/types/user';
 
 const TOKEN_KEY = 'mobilepay.accessToken';
+const REFRESH_TOKEN_KEY = 'mobilepay.refreshToken';
 const USER_KEY = 'mobilepay.user';
 
 export async function saveToken(token: string) {
@@ -14,6 +15,18 @@ export async function getToken() {
 
 export async function removeToken() {
   await AsyncStorage.removeItem(TOKEN_KEY);
+}
+
+export async function saveRefreshToken(token: string) {
+  await AsyncStorage.setItem(REFRESH_TOKEN_KEY, token);
+}
+
+export async function getRefreshToken() {
+  return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export async function removeRefreshToken() {
+  await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 export async function saveUser(user: User) {
@@ -30,5 +43,5 @@ export async function removeStoredUser() {
 }
 
 export async function clearSession() {
-  await Promise.all([removeToken(), removeStoredUser()]);
+  await Promise.all([removeToken(), removeRefreshToken(), removeStoredUser()]);
 }

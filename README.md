@@ -112,10 +112,21 @@ or while still pending.
 | Status with malformed UUID / unknown UUID | 400 / 404 |
 
 ### Auth & authorization
+Login issues a short-lived **access token (1 h)** plus a long-lived **refresh
+token (30 d)**. When the access token expires, the frontend transparently calls
+`POST /api/auth/refresh` (refresh token as the Bearer credential) and retries the
+original request; only when the refresh token is also expired is the user signed
+out. TTLs are configurable via `JWT_ACCESS_TOKEN_EXPIRES_HOURS` /
+`JWT_REFRESH_TOKEN_EXPIRES_DAYS`.
+
 | Case | Result |
 |------|--------|
 | Request with no token | 401 |
 | Login wrong password | 401 |
+| Login success | returns `token` + `refresh_token` |
+| Expired access token + valid refresh token | `/auth/refresh` mints a new access token, request retried |
+| `/auth/refresh` with access token (not refresh) | 422 (wrong token type) |
+| `/auth/refresh` with expired/invalid refresh token | 401 → client clears session |
 | User B reads User A's transaction | 404 (masks existence) |
 
 ### Failure paths (PawaPay sandbox test MSISDNs)

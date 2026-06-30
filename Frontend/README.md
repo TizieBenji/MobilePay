@@ -151,7 +151,7 @@ FrontEnd/
 
 The backend integration is centralized in `src/services/api/`. When your Flask backend is ready, you only need to adjust endpoint names or response shapes in these service files rather than editing every screen.
 
-The authentication token is saved in `src/storage/tokenStorage.ts` and injected into every protected request in `src/services/api/client.ts`.
+The access token and refresh token are saved in `src/storage/tokenStorage.ts` and the access token is injected into every protected request in `src/services/api/client.ts`. When a request returns `401`, the client transparently calls `POST /auth/refresh` with the stored refresh token, saves the new access token, and retries the original request (single-flight, so concurrent 401s trigger only one refresh). If the refresh token is also expired, it clears the session via the `onSessionExpired` hook registered by `AuthContext`.
 
 ## 10. Suggested next steps
 

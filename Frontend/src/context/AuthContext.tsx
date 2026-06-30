@@ -1,6 +1,15 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi, LoginRequest, RegisterRequest } from '@/services/api/auth';
-import { clearSession, getStoredUser, getToken, saveToken, saveUser } from '@/storage/tokenStorage';
+import { setOnSessionExpired } from '@/services/api/client';
+import {
+  clearSession,
+  getStoredUser,
+  getToken,
+  saveRefreshToken,
+  saveToken,
+  saveUser
+} from '@/storage/tokenStorage';
+import { AuthResponse } from '@/types/auth';
 import { User } from '@/types/user';
 
 type AuthContextValue = {
@@ -31,18 +40,33 @@ export function AuthProvider({ children }: PropsWithChildren) {
     restore();
   }, []);
 
-  async function signIn(payload: LoginRequest) {
-    const response = await authApi.login(payload);
+  useEffect(() => {
+    // When the refresh token is also expired, the API client clears the access
+    // token and calls this to tear down the in-memory session and route to login.
+    setOnSessionExpired(() => {
+      setToken(null);
+      setUserState(null);
+      clearSession();
+    });
+    return () => setOnSessionExpired(null);
+  }, []);
+
+  async function persistSession(response: AuthResponse) {
     setToken(response.token);
     setUserState(response.user);
-    await Promise.all([saveToken(response.token), saveUser(response.user)]);
+    await Promise.all([
+      saveToken(response.token),
+      response.refreshToken ? saveRefreshToken(response.refreshToken) : Promise.resolve(),
+      saveUser(response.user)
+    ]);
+  }
+
+  async function signIn(payload: LoginRequest) {
+    await persistSession(await authApi.login(payload));
   }
 
   async function register(payload: RegisterRequest) {
-    const response = await authApi.register(payload);
-    setToken(response.token);
-    setUserState(response.user);
-    await Promise.all([saveToken(response.token), saveUser(response.user)]);
+    await persistSession(await authApi.register(payload));
   }
 
   async function signOut() {

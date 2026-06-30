@@ -19,10 +19,12 @@ export type RegisterRequest = {
 type BackendAuthResponse = {
   access_token?: string;
   token?: string;
+  refresh_token?: string;
   user?: Partial<User>;
   data?: {
     access_token?: string;
     token?: string;
+    refresh_token?: string;
     user?: Partial<User>;
   };
 };
@@ -78,6 +80,7 @@ export const authApi = {
 function normalizeAuthResponse(data: BackendAuthResponse, fallback: Partial<User> & { emailOrPhone?: string }): AuthResponse {
   const body = data.data || data;
   const token = body.access_token || body.token || 'dev-token-change-after-backend-login';
+  const refreshToken = body.refresh_token || null;
   const backendUser = body.user || {};
 
   const user: User = {
@@ -90,5 +93,5 @@ function normalizeAuthResponse(data: BackendAuthResponse, fallback: Partial<User
     createdAt: backendUser.createdAt || new Date().toISOString()
   };
 
-  return { token, user };
+  return { token, refreshToken, user };
 }

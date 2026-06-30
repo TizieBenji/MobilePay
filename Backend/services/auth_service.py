@@ -10,7 +10,8 @@ from utils.password_utils import (
 )
 
 from flask_jwt_extended import (
-    create_access_token
+    create_access_token,
+    create_refresh_token
 )
 
 from services.wallet_service import (
@@ -88,18 +89,27 @@ def login_user(email, password):
             "message": "Invalid email or password"
         }, 401
     
-    token = create_access_token(
-        identity = str(user.id)
-    )    
+    identity = str(user.id)
+    token = create_access_token(identity=identity)
+    refresh_token = create_refresh_token(identity=identity)
 
     return {
         "success": True,
         "message": "Login successful",
         "token": token,
+        "refresh_token": refresh_token,
         "user": {
             "id": user.id,
             "fullname": user.fullname,
             "email": user.email,
             "phone": user.phone
         }
-    }, 200    
+    }, 200
+
+
+def refresh_access_token(user_id):
+    """Issue a fresh access token for the identity carried by a refresh token."""
+    return {
+        "success": True,
+        "token": create_access_token(identity=str(user_id))
+    }, 200

@@ -1,5 +1,6 @@
 from flask import Blueprint, request
-from services.auth_service import register_user, login_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from services.auth_service import register_user, login_user, refresh_access_token
 from extensions import limiter
 
 auth_bp = Blueprint("auth", __name__)
@@ -42,3 +43,9 @@ def login():
         email=data["email"],
         password=data["password"]
     )
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    return refresh_access_token(get_jwt_identity())
