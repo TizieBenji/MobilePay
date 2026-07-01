@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { AppText } from '@/components/ui/AppText';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/layout/Screen';
@@ -7,11 +8,11 @@ import { TransactionItem } from '@/components/domain/TransactionItem';
 import { transactionApi } from '@/services/api/transactions';
 import { Transaction } from '@/types/transaction';
 import { colors } from '@/constants/colors';
-import { mockTransactions } from '@/utils/mockData';
+import { emptyTransactions } from '@/utils/mockData';
 import { showAlert } from '@/utils/dialog';
 
 export default function TransactionsScreen() {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(emptyTransactions);
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -23,9 +24,11 @@ export default function TransactionsScreen() {
     }
   }
 
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadTransactions();
+    }, [])
+  );
 
   async function onRefresh() {
     setRefreshing(true);

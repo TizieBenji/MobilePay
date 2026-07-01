@@ -10,12 +10,12 @@ import { walletApi } from '@/services/api/wallet';
 import { Wallet } from '@/types/wallet';
 import { colors } from '@/constants/colors';
 import { formatCurrency } from '@/utils/currency';
-import { mockWallet } from '@/utils/mockData';
+import { emptyWallet } from '@/utils/mockData';
 import { router } from 'expo-router';
 import { showAlert } from '@/utils/dialog';
 
 export default function WalletScreen() {
-  const [wallet, setWallet] = useState<Wallet>(mockWallet);
+  const [wallet, setWallet] = useState<Wallet>(emptyWallet);
   const [refreshing, setRefreshing] = useState(false);
 
   async function loadWallet() {

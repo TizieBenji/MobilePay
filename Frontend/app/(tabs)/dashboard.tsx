@@ -1,5 +1,5 @@
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui/AppText';
@@ -15,12 +15,12 @@ import { Wallet } from '@/types/wallet';
 import { Transaction } from '@/types/transaction';
 import { colors } from '@/constants/colors';
 import { formatCurrency } from '@/utils/currency';
-import { mockTransactions, mockWallet } from '@/utils/mockData';
+import { emptyTransactions, emptyWallet } from '@/utils/mockData';
 
 export default function DashboardScreen() {
   const { user } = useAuth();
-  const [wallet, setWallet] = useState<Wallet>(mockWallet);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions.slice(0, 3));
+  const [wallet, setWallet] = useState<Wallet>(emptyWallet);
+  const [transactions, setTransactions] = useState<Transaction[]>(emptyTransactions);
   const [refreshing, setRefreshing] = useState(false);
 
   async function loadData() {
@@ -32,14 +32,16 @@ export default function DashboardScreen() {
       setWallet(walletResponse);
       setTransactions(transactionResponse.slice(0, 3));
     } catch {
-      setWallet(mockWallet);
-      setTransactions(mockTransactions.slice(0, 3));
+      // Keep whatever was last successfully loaded rather than overwriting
+      // it with fabricated data.
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   async function onRefresh() {
     setRefreshing(true);
