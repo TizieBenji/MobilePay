@@ -19,6 +19,7 @@ from routes.orange_routes import orange_bp
 from routes.transfer_routes import transfer_bp
 from routes.pawapay_routes import pawapay_bp
 
+from models.token_blocklist import TokenBlocklist
 
 
 # Initialize extensions
@@ -32,6 +33,15 @@ def invalid_token_callback(error):
 @jwt.unauthorized_loader
 def missing_token_callback(error):
     return {"success": False, "message": "Authorization token required"}, 401
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return {"success": False, "message": "Token has been revoked"}, 401
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    return TokenBlocklist.query.filter_by(jti=jti).first() is not None
 
 
 app = Flask(__name__)

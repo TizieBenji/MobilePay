@@ -8,6 +8,7 @@ import { transactionApi } from '@/services/api/transactions';
 import { Transaction } from '@/types/transaction';
 import { colors } from '@/constants/colors';
 import { mockTransactions } from '@/utils/mockData';
+import { showAlert } from '@/utils/dialog';
 
 export default function TransactionsScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
@@ -17,8 +18,8 @@ export default function TransactionsScreen() {
   async function loadTransactions() {
     try {
       setTransactions(await transactionApi.getTransactions());
-    } catch {
-      setTransactions(mockTransactions);
+    } catch (error) {
+      showAlert('Unable to load transactions', error instanceof Error ? error.message : 'Could not reach the server.');
     }
   }
 

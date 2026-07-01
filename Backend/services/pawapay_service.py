@@ -17,6 +17,7 @@ from providers.pawapay.payout_service import (
     poll_payout_until_final,
 )
 from providers.pawapay.config import PawaPayConfig
+from services.provider_router import route_provider
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +219,7 @@ def pawapay_disburse(user_id: int, phone: str, amount, use_polling: bool = False
             type="PAWAPAY_DISBURSEMENT",
             status="PENDING",
             receiver_phone=phone,
+            receiver_network=route_provider(phone),
             provider="PAWAPAY",
             provider_status="PENDING",
             currency="XAF",
@@ -452,8 +454,8 @@ def _create_pawapay_transaction(reference_id: str, user_id: int, amount, tx_type
         status="PENDING",
         sender_phone=sender_phone,
         receiver_phone=receiver_phone,
-        sender_network=None,
-        receiver_network=None,
+        sender_network=route_provider(sender_phone) if sender_phone else None,
+        receiver_network=route_provider(receiver_phone) if receiver_phone else None,
         provider="PAWAPAY",
         provider_status="PENDING",
         currency="XAF",

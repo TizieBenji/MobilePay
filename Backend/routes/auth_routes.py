@@ -1,6 +1,6 @@
 from flask import Blueprint, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from services.auth_service import register_user, login_user, refresh_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from services.auth_service import register_user, login_user, refresh_access_token, logout_user
 from extensions import limiter
 
 auth_bp = Blueprint("auth", __name__)
@@ -24,7 +24,8 @@ def register():
         fullname=data["fullname"],
         email=data["email"],
         phone=data["phone"],
-        password=data["password"]
+        password=data["password"],
+        network=data.get("network")
     )
 
 
@@ -49,3 +50,9 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     return refresh_access_token(get_jwt_identity())
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    return logout_user(get_jwt()["jti"])

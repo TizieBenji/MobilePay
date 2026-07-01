@@ -12,6 +12,7 @@ import { colors } from '@/constants/colors';
 import { formatCurrency } from '@/utils/currency';
 import { mockWallet } from '@/utils/mockData';
 import { router } from 'expo-router';
+import { showAlert } from '@/utils/dialog';
 
 export default function WalletScreen() {
   const [wallet, setWallet] = useState<Wallet>(mockWallet);
@@ -20,8 +21,8 @@ export default function WalletScreen() {
   async function loadWallet() {
     try {
       setWallet(await walletApi.getWallet());
-    } catch {
-      setWallet(mockWallet);
+    } catch (error) {
+      showAlert('Unable to load wallet', error instanceof Error ? error.message : 'Could not reach the server.');
     }
   }
 

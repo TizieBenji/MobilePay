@@ -1,6 +1,7 @@
 from database.db import db
 
 from models.user import User
+from models.token_blocklist import TokenBlocklist
 
 
 from utils.password_utils import (
@@ -18,13 +19,15 @@ from services.wallet_service import (
      create_wallet,
     create_wallet_internal
 )
-   
+from services.provider_router import route_provider
+
 
 def register_user(
     fullname,
     email,
     phone,
-    password
+    password,
+    network=None
 ):
 
     existing_user = User.query.filter(
@@ -43,7 +46,8 @@ def register_user(
         fullname=fullname,
         email=email,
         phone=phone,
-        password_hash=hash_password(password)
+        password_hash=hash_password(password),
+        network=(network or route_provider(phone))
     )
 
     db.session.add(user)
@@ -78,7 +82,8 @@ def register_user(
             "id": user.id,
             "fullname": user.fullname,
             "email": user.email,
-            "phone": user.phone
+            "phone": user.phone,
+            "network": user.network
         }
     }, 201
 
@@ -114,8 +119,20 @@ def login_user(email, password):
             "id": user.id,
             "fullname": user.fullname,
             "email": user.email,
-            "phone": user.phone
+            "phone": user.phone,
+            "network": user.network
         }
+    }, 200
+
+
+def logout_user(jti):
+    """Revoke the access token by recording its jti in the blocklist."""
+    db.session.add(TokenBlocklist(jti=jti))
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Logged out"
     }, 200
 
 

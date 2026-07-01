@@ -2,6 +2,7 @@
 from database.db import db
 from models.wallet import Wallet
 from models.transaction import Transaction
+from models.user import User
 from utils.money import to_decimal, to_amount
 
 
@@ -54,11 +55,16 @@ def get_wallet(user_id):
             "message": "Wallet not found"
         }, 404
 
+    user = User.query.get(wallet.user_id)
+
     return {
         "success": True,
         "balance": to_amount(wallet.balance),
         "currency": wallet.currency,
-        "status": wallet.status
+        "status": wallet.status,
+        "phone": user.phone if user else None,
+        "network": user.network if user else None,
+        "updated_at": wallet.updated_at.isoformat() if wallet.updated_at else None
     }, 200
 
 

@@ -33,12 +33,13 @@ export const authApi = {
   async register(payload: RegisterRequest): Promise<AuthResponse> {
     try {
       // Backend (/api/auth/register) expects exactly these fields; dateOfBirth
-      // and network are collected in the UI but not yet stored server-side.
+      // is collected in the UI but not yet stored server-side.
       const response = await apiClient.post<BackendAuthResponse>('/auth/register', {
         fullname: payload.fullname,
         email: payload.email,
         phone: payload.phone,
-        password: payload.password
+        password: payload.password,
+        network: payload.network
       });
       return normalizeAuthResponse(response.data, payload);
     } catch (error) {
@@ -62,7 +63,7 @@ export const authApi = {
 
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/logout');
+      await apiClient.post('/auth/logout');
     } catch {
       // Local logout must still continue even if the backend logout endpoint is unavailable.
     }
