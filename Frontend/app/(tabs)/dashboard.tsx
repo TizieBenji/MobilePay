@@ -83,9 +83,11 @@ export default function DashboardScreen() {
         <Link href="/(tabs)/transfer" asChild>
           <Button title="Send money" variant="outlineDark" />
         </Link>
-        <Link href="/(onboarding)/kyc" asChild>
-          <Button title="Complete KYC" variant="ghost" />
-        </Link>
+        {user?.kycStatus !== 'APPROVED' && (
+          <Link href="/(onboarding)/kyc" asChild>
+            <Button title="Complete KYC" variant="ghost" />
+          </Link>
+        )}
       </View>
 
       <View style={styles.sectionHeader}>
