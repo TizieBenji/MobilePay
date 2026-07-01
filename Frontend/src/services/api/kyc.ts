@@ -29,9 +29,10 @@ export const kycApi = {
       formData.append('back', back);
       formData.append('selfie', selfie);
 
-      await apiClient.post('/kyc/submit', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      // Do not set Content-Type manually: the browser/axios needs to generate
+      // it itself so the multipart boundary is included, otherwise Flask
+      // can't parse request.form/request.files and returns 400.
+      await apiClient.post('/kyc/submit', formData);
     } catch (error) {
       throw new Error(getApiError(error, 'Unable to upload KYC.'));
     }

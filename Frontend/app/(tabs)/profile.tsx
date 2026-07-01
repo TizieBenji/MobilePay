@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui/AppText';
@@ -17,6 +17,13 @@ export default function ProfileScreen() {
   const [fullname, setFullname] = useState(user?.fullname || '');
   const [email, setEmail] = useState(user?.email || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFullname(user.fullname || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   async function handleSave() {
     setIsSaving(true);

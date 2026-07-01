@@ -11,13 +11,13 @@ export const profileApi = {
     }
   },
 
-  // The backend does not yet expose a profile-update endpoint, so this merges
-  // the edits onto the current server profile and returns them for local/UI
-  // use only. Wire this to a real PUT once the backend supports it.
   async updateProfile(payload: Partial<User>): Promise<User> {
     try {
-      const current = await this.getProfile();
-      return { ...current, ...payload };
+      const response = await apiClient.patch<any>('/user/me', {
+        fullname: payload.fullname,
+        email: payload.email
+      });
+      return normalizeUser(response.data?.data || response.data);
     } catch (error) {
       throw new Error(getApiError(error, 'Unable to update profile.'));
     }
