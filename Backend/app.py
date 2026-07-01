@@ -91,4 +91,5 @@ if __name__ == "__main__":
     # debug=True must never be hardcoded — read from env var.
     # Set FLASK_DEBUG=true in .env for local development only.
     debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
-    app.run(debug=debug)
+    host = os.getenv("FLASK_HOST", "127.0.0.1")
+    app.run(debug=debug, host=host)

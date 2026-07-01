@@ -7,3 +7,5 @@ __pycache__/
 .vscode/*
 .playwright-mcp/
 notes.*
+Backend/uploads/kyc/*
+!Backend/uploads/kyc/.gitkeep
