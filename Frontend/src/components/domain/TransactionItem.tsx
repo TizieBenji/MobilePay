@@ -24,7 +24,7 @@ export function TransactionItem({ transaction }: { transaction: Transaction }) {
           <AppText size={12} color={colors.muted}>{transaction.createdAt}</AppText>
           <Badge label={transaction.status} tone={tone} />
         </View>
-        <AppText size={12} color={colors.muted}>Network: {transaction.receiverNetwork} · Ref: {transaction.referenceId}</AppText>
+        <AppText size={12} color={colors.muted}>Network: {transaction.receiverNetwork || transaction.senderNetwork} · Ref: {transaction.referenceId}</AppText>
       </View>
     </Card>
   );

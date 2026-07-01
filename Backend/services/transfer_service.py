@@ -4,6 +4,7 @@ from database.db import db
 from models.wallet import Wallet
 from models.transaction import Transaction
 from models.kyc import KYC
+from models.user import User
 from utils.money import to_decimal, to_amount
 
 def is_kyc_approved(user_id):
@@ -56,6 +57,9 @@ def transfer(sender_id, receiver_id, amount, channel="INTERNAL"):
             db.session.rollback()
             return {"success": False, "message": "Wallet not found"}, 404
 
+        sender_user = User.query.get(sender_id)
+        receiver_user = User.query.get(receiver_id)
+
         if sender_wallet.status != "ACTIVE":
             db.session.rollback()
             return {"success": False, "message": "Sender wallet is not active"}, 403
@@ -70,20 +74,37 @@ def transfer(sender_id, receiver_id, amount, channel="INTERNAL"):
         # Credit receiver
         receiver_wallet.balance = to_decimal(receiver_wallet.balance) + amount
 
-        # Create ledger entry
-        trx = Transaction(
+        # Create one ledger entry per party so each user's own transaction
+        # history shows the transfer (previously only the sender got a row,
+        # so the receiver's balance changed with no matching history entry).
+        sender_trx = Transaction(
             reference_id=reference,
             user_id=sender_id,
             amount=amount,
             type="TRANSFER",
             status="SUCCESS",
-            receiver_phone=str(receiver_id),
+            sender_phone=sender_user.phone,
+            receiver_phone=receiver_user.phone,
             provider="INTERNAL",
-            sender_network=channel,
-            receiver_network=channel,
+            sender_network=sender_user.network,
+            receiver_network=receiver_user.network,
         )
 
-        db.session.add(trx)
+        receiver_trx = Transaction(
+            reference_id=f"{reference}-r",
+            user_id=receiver_id,
+            amount=amount,
+            type="TRANSFER",
+            status="SUCCESS",
+            sender_phone=sender_user.phone,
+            receiver_phone=receiver_user.phone,
+            provider="INTERNAL",
+            sender_network=sender_user.network,
+            receiver_network=receiver_user.network,
+        )
+
+        db.session.add(sender_trx)
+        db.session.add(receiver_trx)
 
         sender_balance = to_amount(sender_wallet.balance)
         receiver_balance = to_amount(receiver_wallet.balance)

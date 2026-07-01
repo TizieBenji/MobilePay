@@ -160,6 +160,8 @@ def get_transactions(user_id):
                 "provider": t.provider,
                 "sender_phone": t.sender_phone,
                 "receiver_phone": t.receiver_phone,
+                "sender_network": t.sender_network,
+                "receiver_network": t.receiver_network,
                 "created_at": str(t.created_at)
             }
             for t in transactions
