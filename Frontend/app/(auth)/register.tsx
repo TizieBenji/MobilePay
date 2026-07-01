@@ -1,6 +1,7 @@
 import { router, Link } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -23,22 +24,22 @@ export default function RegisterScreen() {
 
   async function handleRegister() {
     if (!fullname.trim() || !dateOfBirth.trim() || !phone.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Missing information', 'Please fill all fields.');
+      showAlert('Missing information', 'Please fill all fields.');
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Invalid email', 'Please enter a valid email address.');
+      showAlert('Invalid email', 'Please enter a valid email address.');
       return;
     }
 
     if (!network) {
-      Alert.alert('Unsupported number', 'Use a valid MTN or Orange Cameroon number.');
+      showAlert('Unsupported number', 'Use a valid MTN or Orange Cameroon number.');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Weak password', 'Password must contain at least 6 characters.');
+      showAlert('Weak password', 'Password must contain at least 6 characters.');
       return;
     }
 
@@ -54,7 +55,7 @@ export default function RegisterScreen() {
       });
       router.replace('/(onboarding)/kyc');
     } catch (error) {
-      Alert.alert('Registration failed', error instanceof Error ? error.message : 'Unable to create account.');
+      showAlert('Registration failed', error instanceof Error ? error.message : 'Unable to create account.');
     } finally {
       setIsSubmitting(false);
     }

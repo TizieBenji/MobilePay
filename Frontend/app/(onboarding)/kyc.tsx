@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +26,7 @@ export default function KycScreen() {
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert('Permission required', 'Please allow access to continue KYC verification.');
+      showAlert('Permission required', 'Please allow access to continue KYC verification.');
       return;
     }
 
@@ -41,18 +42,18 @@ export default function KycScreen() {
 
   async function handleSubmit() {
     if (!nationalId.trim() || !address.trim() || !idFront || !idBack || !selfie) {
-      Alert.alert('Incomplete KYC', 'Please provide your ID number, address, ID front, ID back and selfie.');
+      showAlert('Incomplete KYC', 'Please provide your ID number, address, ID front, ID back and selfie.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await kycApi.uploadKyc({ nationalId, residentialAddress: address, idFront, idBack, selfie });
-      Alert.alert('KYC submitted', 'Your documents have been sent for verification.', [
+      showAlert('KYC submitted', 'Your documents have been sent for verification.', [
         { text: 'Continue', onPress: () => router.replace('/(tabs)/dashboard') }
       ]);
     } catch (error) {
-      Alert.alert('Upload failed', error instanceof Error ? error.message : 'Unable to upload KYC.');
+      showAlert('Upload failed', error instanceof Error ? error.message : 'Unable to upload KYC.');
     } finally {
       setIsSubmitting(false);
     }

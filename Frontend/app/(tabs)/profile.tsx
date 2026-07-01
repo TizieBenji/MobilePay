@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -30,16 +31,16 @@ export default function ProfileScreen() {
     try {
       const updatedUser = await profileApi.updateProfile({ fullname, email });
       setUser(updatedUser);
-      Alert.alert('Profile updated', 'Your profile has been saved.');
+      showAlert('Profile updated', 'Your profile has been saved.');
     } catch (error) {
-      Alert.alert('Update failed', error instanceof Error ? error.message : 'Unable to update profile.');
+      showAlert('Update failed', error instanceof Error ? error.message : 'Unable to update profile.');
     } finally {
       setIsSaving(false);
     }
   }
 
   async function handleLogout() {
-    Alert.alert('Logout', 'Do you want to logout from MobilePay?', [
+    showAlert('Logout', 'Do you want to logout from MobilePay?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',

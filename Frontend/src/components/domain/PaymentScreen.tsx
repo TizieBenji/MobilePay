@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { AppText } from '@/components/ui/AppText';
@@ -36,15 +37,15 @@ export function PaymentScreen({ title, subtitle, phoneLabel, phoneHelper, action
 
   async function handleSubmit() {
     if (!phone.trim() || !amount.trim()) {
-      Alert.alert('Missing information', 'Enter a phone number and an amount.');
+      showAlert('Missing information', 'Enter a phone number and an amount.');
       return;
     }
     if (!network) {
-      Alert.alert('Unsupported number', 'Use a valid MTN or Orange Cameroon number.');
+      showAlert('Unsupported number', 'Use a valid MTN or Orange Cameroon number.');
       return;
     }
     if (!numericAmount || numericAmount <= 0) {
-      Alert.alert('Invalid amount', 'Enter an amount greater than zero.');
+      showAlert('Invalid amount', 'Enter an amount greater than zero.');
       return;
     }
 
@@ -54,14 +55,14 @@ export function PaymentScreen({ title, subtitle, phoneLabel, phoneHelper, action
       const status = String(result.pawaStatus).toUpperCase();
 
       if (status === 'COMPLETED' || result.walletProcessed) {
-        Alert.alert('Success', result.message || 'Payment completed.');
+        showAlert('Success', result.message || 'Payment completed.');
         onDone?.();
         router.back();
       } else if (status === 'FAILED') {
-        Alert.alert('Payment failed', result.message || 'The mobile-money operator rejected the payment.');
+        showAlert('Payment failed', result.message || 'The mobile-money operator rejected the payment.');
       } else {
         // ACCEPTED / PENDING / TIMEOUT — still processing.
-        Alert.alert(
+        showAlert(
           'Processing',
           result.message || 'Payment is still processing. It will appear in your history once confirmed.'
         );
@@ -69,7 +70,7 @@ export function PaymentScreen({ title, subtitle, phoneLabel, phoneHelper, action
         router.back();
       }
     } catch (error) {
-      Alert.alert(title, error instanceof Error ? error.message : 'Something went wrong.');
+      showAlert(title, error instanceof Error ? error.message : 'Something went wrong.');
     } finally {
       setIsSubmitting(false);
     }

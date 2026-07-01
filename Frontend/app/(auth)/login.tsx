@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,6 +8,7 @@ import { Screen } from '@/components/layout/Screen';
 import { useAuth } from '@/context/AuthContext';
 import { colors } from '@/constants/colors';
 import { validateEmail } from '@/utils/validators';
+import { showAlert } from '@/utils/dialog';
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -17,12 +18,12 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     if (!emailOrPhone.trim() || !password.trim()) {
-      Alert.alert('Missing information', 'Please enter your email/phone and password.');
+      showAlert('Missing information', 'Please enter your email/phone and password.');
       return;
     }
 
     if (emailOrPhone.includes('@') && !validateEmail(emailOrPhone)) {
-      Alert.alert('Invalid email', 'Please enter a valid email address.');
+      showAlert('Invalid email', 'Please enter a valid email address.');
       return;
     }
 
@@ -31,7 +32,7 @@ export default function LoginScreen() {
       await signIn({ emailOrPhone, password });
       router.replace('/(tabs)/dashboard');
     } catch (error) {
-      Alert.alert('Login failed', error instanceof Error ? error.message : 'Unable to login.');
+      showAlert('Login failed', error instanceof Error ? error.message : 'Unable to login.');
     } finally {
       setIsSubmitting(false);
     }

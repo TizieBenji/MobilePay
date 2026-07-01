@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -24,22 +25,22 @@ export default function TransferScreen() {
 
   async function handleTransfer() {
     if (!user?.phone) {
-      Alert.alert('Missing sender', 'Your profile phone number is missing.');
+      showAlert('Missing sender', 'Your profile phone number is missing.');
       return;
     }
 
     if (!receiver.trim() || !amount.trim()) {
-      Alert.alert('Missing information', 'Enter recipient number and amount.');
+      showAlert('Missing information', 'Enter recipient number and amount.');
       return;
     }
 
     if (!receiverNetwork) {
-      Alert.alert('Unsupported recipient', 'Recipient must be an MTN or Orange Cameroon number.');
+      showAlert('Unsupported recipient', 'Recipient must be an MTN or Orange Cameroon number.');
       return;
     }
 
     if (!numericAmount || numericAmount <= 0) {
-      Alert.alert('Invalid amount', 'Enter an amount greater than zero.');
+      showAlert('Invalid amount', 'Enter an amount greater than zero.');
       return;
     }
 
@@ -50,11 +51,11 @@ export default function TransferScreen() {
         receiver: normalizePhone(receiver),
         amount: numericAmount
       });
-      Alert.alert('Transfer submitted', `Status: ${result.status}\nReference: ${result.referenceId}`);
+      showAlert('Transfer submitted', `Status: ${result.status}\nReference: ${result.referenceId}`);
       setReceiver('');
       setAmount('');
     } catch (error) {
-      Alert.alert('Transfer failed', error instanceof Error ? error.message : 'Unable to complete transfer.');
+      showAlert('Transfer failed', error instanceof Error ? error.message : 'Unable to complete transfer.');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { showAlert } from '@/utils/dialog';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -14,18 +15,18 @@ export default function ForgotPasswordScreen() {
 
   async function handleSubmit() {
     if (!emailOrPhone.trim()) {
-      Alert.alert('Missing information', 'Enter your email or phone number.');
+      showAlert('Missing information', 'Enter your email or phone number.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await authApi.forgotPassword(emailOrPhone);
-      Alert.alert('Request sent', 'If this account exists, password reset instructions will be sent.', [
+      showAlert('Request sent', 'If this account exists, password reset instructions will be sent.', [
         { text: 'OK', onPress: () => router.replace('/(auth)/login') }
       ]);
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Unable to submit request.');
+      showAlert('Error', error instanceof Error ? error.message : 'Unable to submit request.');
     } finally {
       setIsSubmitting(false);
     }
