@@ -2,6 +2,7 @@ from database.db import db
 
 from models.user import User
 from models.token_blocklist import TokenBlocklist
+from models.kyc import KYC
 
 
 from utils.password_utils import (
@@ -84,7 +85,8 @@ def register_user(
             "email": user.email,
             "phone": user.phone,
             "network": user.network,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "kyc_status": "PENDING"
         }
     }, 201
 
@@ -111,6 +113,8 @@ def login_user(email, password):
     token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
 
+    kyc = KYC.query.filter_by(user_id=user.id).first()
+
     return {
         "success": True,
         "message": "Login successful",
@@ -122,7 +126,8 @@ def login_user(email, password):
             "email": user.email,
             "phone": user.phone,
             "network": user.network,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "kyc_status": kyc.status if kyc else "PENDING"
         }
     }, 200
 

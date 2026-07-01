@@ -6,6 +6,7 @@ from flask_jwt_extended import (
 )
 from database.db import db
 from models.user import User
+from models.kyc import KYC
 
 user_bp = Blueprint(
     "user",
@@ -25,13 +26,16 @@ def me():
         int(user_id)
     )
 
+    kyc = KYC.query.filter_by(user_id=user.id).first()
+
     return {
         "id": user.id,
         "fullname": user.fullname,
         "email": user.email,
         "phone": user.phone,
         "network": user.network,
-        "is_admin": user.is_admin
+        "is_admin": user.is_admin,
+        "kyc_status": kyc.status if kyc else "PENDING"
     }, 200
 
 
@@ -74,11 +78,14 @@ def update_me():
 
     db.session.commit()
 
+    kyc = KYC.query.filter_by(user_id=user.id).first()
+
     return {
         "id": user.id,
         "fullname": user.fullname,
         "email": user.email,
         "phone": user.phone,
         "network": user.network,
-        "is_admin": user.is_admin
+        "is_admin": user.is_admin,
+        "kyc_status": kyc.status if kyc else "PENDING"
     }, 200
