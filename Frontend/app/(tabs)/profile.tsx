@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { showAlert } from '@/utils/dialog';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +25,12 @@ export default function ProfileScreen() {
       setEmail(user.email || '');
     }
   }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      profileApi.getProfile().then(setUser).catch(() => {});
+    }, [])
+  );
 
   async function handleSave() {
     setIsSaving(true);
