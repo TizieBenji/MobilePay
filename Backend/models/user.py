@@ -35,6 +35,13 @@ class User(db.Model):
         db.String(20)
     )
 
+    is_admin = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False,
+        server_default="false"
+    )
+
     created_at = db.Column(
         db.DateTime,
         server_default=db.func.now()

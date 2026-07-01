@@ -4,7 +4,7 @@ import { colors } from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabsLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return null;
@@ -64,6 +64,14 @@ export default function TabsLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />
+        }}
+      />
+      <Tabs.Screen
+        name="admin-kyc"
+        options={{
+          title: 'Review',
+          href: user?.isAdmin ? undefined : null,
+          tabBarIcon: ({ color, size }) => <Ionicons name="shield-checkmark-outline" size={size} color={color} />
         }}
       />
     </Tabs>

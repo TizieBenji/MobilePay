@@ -7,8 +7,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from werkzeug.utils import secure_filename
 
-from services.kyc_service import create_kyc
+from services.kyc_service import create_kyc, list_pending_kyc, approve_kyc, reject_kyc
 from models.kyc import KYC
+from utils.admin_required import admin_required
 
 
 kyc_bp = Blueprint("kyc", __name__)
@@ -91,3 +92,25 @@ def kyc_status():
         return {"success": True, "status": "NOT_SUBMITTED"}, 200
 
     return {"success": True, "status": kyc.status}, 200
+
+
+@kyc_bp.route("/pending", methods=["GET"])
+@jwt_required()
+@admin_required
+def pending_kyc():
+    return list_pending_kyc()
+
+
+@kyc_bp.route("/<int:kyc_id>/approve", methods=["PATCH"])
+@jwt_required()
+@admin_required
+def approve(kyc_id):
+    return approve_kyc(kyc_id)
+
+
+@kyc_bp.route("/<int:kyc_id>/reject", methods=["PATCH"])
+@jwt_required()
+@admin_required
+def reject(kyc_id):
+    data = request.get_json(silent=True) or {}
+    return reject_kyc(kyc_id, rejection_reason=data.get("rejection_reason"))

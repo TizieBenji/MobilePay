@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { apiClient, getApiError } from './client';
-import { ImageAsset, KycUploadPayload } from '@/types/kyc';
+import { ImageAsset, KycRecord, KycUploadPayload } from '@/types/kyc';
 
 // On native, RN's fetch/FormData accepts the {uri, name, type} shape directly.
 // On web, asset.uri is a blob: URL that must be fetched into a real Blob first.
@@ -45,5 +45,46 @@ export const kycApi = {
     } catch (error) {
       throw new Error(getApiError(error, 'Unable to fetch KYC status.'));
     }
+  },
+
+  async getPending(): Promise<KycRecord[]> {
+    try {
+      const response = await apiClient.get<{ records: any[] }>('/kyc/pending');
+      return response.data.records.map(normalizeKycRecord);
+    } catch (error) {
+      throw new Error(getApiError(error, 'Unable to fetch pending KYC records.'));
+    }
+  },
+
+  async approve(kycId: number): Promise<void> {
+    try {
+      await apiClient.patch(`/kyc/${kycId}/approve`);
+    } catch (error) {
+      throw new Error(getApiError(error, 'Unable to approve KYC.'));
+    }
+  },
+
+  async reject(kycId: number, rejectionReason: string): Promise<void> {
+    try {
+      await apiClient.patch(`/kyc/${kycId}/reject`, { rejection_reason: rejectionReason });
+    } catch (error) {
+      throw new Error(getApiError(error, 'Unable to reject KYC.'));
+    }
   }
 };
+
+function normalizeKycRecord(data: any): KycRecord {
+  return {
+    id: data.id,
+    userId: data.user_id,
+    nationalIdNumber: data.national_id_number,
+    documentType: data.document_type,
+    residentialAddress: data.residential_address,
+    documentFront: data.document_front,
+    documentBack: data.document_back,
+    selfieImage: data.selfie_image,
+    status: data.status,
+    rejectionReason: data.rejection_reason,
+    createdAt: data.created_at
+  };
+}

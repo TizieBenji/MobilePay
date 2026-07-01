@@ -32,6 +32,7 @@ function normalizeUser(data: any): User {
     phone: data.phone || '',
     network: data.network || null,
     kycStatus: data.kyc_status || data.kycStatus || 'PENDING',
-    createdAt: data.created_at || data.createdAt || ''
+    createdAt: data.created_at || data.createdAt || '',
+    isAdmin: data.is_admin || data.isAdmin || false
   };
 }

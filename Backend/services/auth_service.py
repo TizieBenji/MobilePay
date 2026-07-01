@@ -83,7 +83,8 @@ def register_user(
             "fullname": user.fullname,
             "email": user.email,
             "phone": user.phone,
-            "network": user.network
+            "network": user.network,
+            "is_admin": user.is_admin
         }
     }, 201
 
@@ -120,7 +121,8 @@ def login_user(email, password):
             "fullname": user.fullname,
             "email": user.email,
             "phone": user.phone,
-            "network": user.network
+            "network": user.network,
+            "is_admin": user.is_admin
         }
     }, 200
 

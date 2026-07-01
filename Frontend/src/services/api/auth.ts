@@ -20,12 +20,12 @@ type BackendAuthResponse = {
   access_token?: string;
   token?: string;
   refresh_token?: string;
-  user?: Partial<User>;
+  user?: Partial<User> & { is_admin?: boolean };
   data?: {
     access_token?: string;
     token?: string;
     refresh_token?: string;
-    user?: Partial<User>;
+    user?: Partial<User> & { is_admin?: boolean };
   };
 };
 
@@ -94,7 +94,8 @@ function normalizeAuthResponse(data: BackendAuthResponse, fallback: Partial<User
     phone: backendUser.phone || fallback.phone || (!fallback.emailOrPhone?.includes('@') ? fallback.emailOrPhone || '' : ''),
     network: backendUser.network || fallback.network || null,
     kycStatus: backendUser.kycStatus || 'PENDING',
-    createdAt: backendUser.createdAt || new Date().toISOString()
+    createdAt: backendUser.createdAt || new Date().toISOString(),
+    isAdmin: backendUser.is_admin || false
   };
 
   return { token, refreshToken, user };

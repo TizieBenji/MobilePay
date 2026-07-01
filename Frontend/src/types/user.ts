@@ -8,4 +8,5 @@ export type User = {
   network: Network | null;
   kycStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | string;
   createdAt?: string;
+  isAdmin?: boolean;
 };
